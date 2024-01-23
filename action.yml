@@ -52,7 +52,7 @@ runs:
           one of our team members will take a look at why we're unable to
           execute your code.
     - name: Generate feedback Report if all tests passed
-      if: steps.checkout-submission-repo.outcome == 'success'
+      if: steps.check-submission-output.outcome == 'success'
       run: |
         echo "const fs = require("fs");
 
