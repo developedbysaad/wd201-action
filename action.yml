@@ -54,25 +54,25 @@ runs:
     - name: Generate feedback Report if all tests passed
       if: steps.check-submission-output.outcome == 'success'
       run: |
-        echo "const fs = require("fs");
+        echo "const fs = require(\"fs\");
 
         function checkValidString(input) {
-          return input.toLowerCase().indexOf("hello") > -1;
+          return input.toLowerCase().indexOf(\"hello\") > -1;
         }
 
-        fs.readFile("output.txt", "utf8", (err, data) => {
+        fs.readFile(\"output.txt\", \"utf8\", (err, data) => {
           if (err) {
             throw err;
           } else {
             let passed = checkValidString(data);
-            let reportFile = "./report.json";
+            let reportFile = \"./report.json\";
             let feedback = passed
-              ? "Good work! It looks like your code prints the output according to the specification."
-              : "Uh oh! It looks like you've missed some parts of the assignment! Please ensure that your `index.js` script outputs the expected message mentioned in the assignment and try again.";
+              ? \"Good work! It looks like your code prints the output according to the specification.\"
+              : \"Uh oh! It looks like you've missed some parts of the assignment! Please ensure that your `index.js` script outputs the expected message mentioned in the assignment and try again.\";
             let report = {
               version: 0,
-              grade: passed ? "accept" : "reject",
-              status: passed ? "success" : "failure",
+              grade: passed ? \"accept\" : \"reject\",
+              status: passed ? \"success\" : \"failure\",
               feedback: feedback,
             };
             fs.writeFileSync(reportFile, JSON.stringify(report));
