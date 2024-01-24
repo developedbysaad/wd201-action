@@ -118,6 +118,7 @@ runs:
                 fs.writeFileSync(reportFile, JSON.stringify(report));
               }
             });" | node
+            ;;
           "L2")
             cd submission/http-server && node generateReportFromResults.js
             ;;
