@@ -46,11 +46,13 @@ runs:
             cp solution/l2/package.json submission/http-server
             ;;
         esac
+      shell: bash
 
     # run the tests
     - name: Setup and Test Submission
       if: ${{ steps.check-student-repo.outputs.result == 'success' && steps.checkout-solutions-repo.outcome == 'success' }}
       id: check-submission-output
+      continue-on-error: true
       run: |
         # Conditional logic to run tests based on the level
         case ${{ inputs.level_name }} in
@@ -65,7 +67,6 @@ runs:
           # ... Add cases for other levels (L3 to L11)
         esac
       shell: bash
-      continue-on-error: true
 
     # Report failure
     - name: Report failure if tests fails
