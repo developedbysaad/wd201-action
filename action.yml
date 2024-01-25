@@ -24,6 +24,14 @@ runs:
         repoPath: submission
         globs: ${{ inputs.globs }}
 
+    # Report to LMS tests are in progress
+    - name: Report to LMS tests in progress
+      if: ${{ steps.check-student-repo.outputs.result == 'success' }}
+      uses: pupilfirst/report-action@v1
+      with:
+        status: "in_progress"
+        description: "Automated tests are in progress."
+
     # Checkout the wd201-tests repo
     - name: Check out the solutions repo
       if: ${{ steps.check-student-repo.outputs.result == 'success' }}
@@ -51,6 +59,14 @@ runs:
           "L3")
             cp submission/todo-cli/todo.js solution/l3/index.js
             ;;
+          "L4")
+            rm -rf solution/l4/__tests__
+            cp -r submission/todo-cli/__tests__ solution/l4
+            cp submission/todo-cli/todo.js solution/l4/todo.js
+            cp submission/todo-cli/__tests__/todo.js solution/l4/__tests__/todoFailure.js
+            sed -i 's/("..\/todo")/("..\/todoFailure")/g' solution/l4/__tests__/todoFailure.js
+            sed -i "s/('..\/todo')/('..\/todoFailure')/g" solution/l4/__tests__/todoFailure.js
+            ;;
         esac
       shell: bash
 
@@ -60,7 +76,6 @@ runs:
       id: check-submission-output
       continue-on-error: true
       run: |
-        # Conditional logic to run tests based on the level
         case ${{ inputs.level_name }} in
           "L1")
             node submission/hello-world/index.js > output.txt
@@ -89,6 +104,11 @@ runs:
           "L3")
             cd solution/l3
             node test.js
+            ;;
+          "L4")
+            cd solution/l4
+            npm install
+            npm run test
             ;;
         esac
       shell: bash
@@ -137,6 +157,9 @@ runs:
           "L2")
             cd submission/http-server && node generateReportFromResults.js
             ;;
+          "L4")
+            cd solution/l4 && node generateReportFromResults.js
+            ;;
           # ... Add cases for other levels (L3 to L11)
         esac
       shell: bash
@@ -147,3 +170,19 @@ runs:
       if: steps.generate-report.outcome == 'success'
       with:
         report_file_path: ${{ inputs.report_file_path }}
+
+    # Report outcome of tests to the LMS
+    - name: Report outcome of tests to LMS
+      uses: pupilfirst/report-action@v1
+      if: steps.generate-report.outcome == 'success'
+      id: report-test-results
+      with:
+        report_file_path: ${{ inputs.report_file_path }}
+
+    # Report error in testing to LMS
+    - name: Report error in testing to LMS
+      uses: pupilfirst/report-action@v1
+      if: ${{ steps.checkout-solutions-repo.outcome == 'success' && steps.report-test-results.outcome == 'skipped' }}
+      with:
+        status: "error"
+        description: "Automated tests could not be run successfully"
