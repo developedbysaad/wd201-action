@@ -9,6 +9,8 @@ inputs:
     description: "This contains the list of files that will checked during repo verification,"
   report_file_path:
     description: "It contains the path to report.json file, ex: submission/someFolder/report.json"
+  test_failure_feedback:
+    description: "It contains test failure feedback"
 
 runs:
   using: "composite"
@@ -34,6 +36,7 @@ runs:
     # Copy test files to student's repo
     - name: Copy test files to submission repo
       if: steps.checkout-solutions-repo.outcome == 'success'
+      id: copy-submission-files
       continue-on-error: true
       run: |
         # Conditional logic to copy necessary files  based on the level
@@ -45,12 +48,15 @@ runs:
             cp solution/l2/package-lock.json submission/http-server
             cp solution/l2/package.json submission/http-server
             ;;
+          "L3")
+            cp submission/todo-cli/todo.js solution/l3/index.js
+            ;;
         esac
       shell: bash
 
-    # run the tests
+    # Generate output
     - name: Setup and Test Submission
-      if: ${{ steps.check-student-repo.outputs.result == 'success' && steps.checkout-solutions-repo.outcome == 'success' }}
+      if: ${{ steps.check-student-repo.outputs.result == 'success' || steps.copy-submission-files.outcome == 'success' }}
       id: check-submission-output
       continue-on-error: true
       run: |
@@ -59,12 +65,31 @@ runs:
           "L1")
             node submission/hello-world/index.js > output.txt
             ;;
+          "L3")
+            cd solution/l3
+            node index.js &> output.txt
+            ;;
+          # ... Add cases for other levels (L3 to L11)
+        esac
+      shell: bash
+
+    # run the tests
+    - name: Setup and Test Submission
+      if: ${{steps.checkout-solutions-repo.outcome == 'success' || steps.copy-submission-files.outcome == 'success' }}
+      id: run-test
+      continue-on-error: true
+      run: |
+        # Conditional logic to run tests based on the level
+        case ${{ inputs.level_name }} in
           "L2")
             cd submission/http-server
             npm install
             npm run test
             ;;
-          # ... Add cases for other levels (L3 to L11)
+          "L3")
+            cd solution/l3
+            node test.js
+            ;;
         esac
       shell: bash
 
@@ -74,17 +99,7 @@ runs:
       uses: pupilfirst/grade-action@v1
       with:
         fail_submission: true
-        feedback: |
-          We tried to run the script using the command `node hello-world/index.js`,
-          but some reason, we couldn't. Before submitting again, could you
-          please verify whether your `hello-world/index.js` file contains
-          valid JavaScript code? Also, please ensure that you run your script
-          before submitting again.
-
-          If this error persists, please ask for assistance on the
-          **#wd-forum** channel on the Pupilfirst School Discord server, and
-          one of our team members will take a look at why we're unable to
-          execute your code.
+        feedback: ${{inputs.test_failure_feedback}}
 
     # Report Success
     - name: Generate feedback Report if all tests passed
