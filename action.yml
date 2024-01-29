@@ -11,6 +11,8 @@ inputs:
     description: "It contains the path to report.json file, ex: submission/someFolder/report.json"
   test_failure_feedback:
     description: "It contains test failure feedback"
+  submissionUrl:
+    description: "It contains the url of live application "
 
 runs:
   using: "composite"
@@ -76,6 +78,10 @@ runs:
             cp -r submission/todo-app/models/ solution/l6/
             cp submission/todo-app/app.js solution/l6/app.js
             ;;
+          "L7")
+            cp solution/l7/package.json package.json
+            cp solution/l7/package-lock.json package-lock.json
+            ;;
         esac
       shell: bash
 
@@ -129,8 +135,24 @@ runs:
             npm install
             npm run test
             ;;
+          "L7")
+            cd solution/l6
+            npm install
+            npm run test
+            ;;
         esac
       shell: bash
+
+    # Cypress for L7
+    - name: Cypress run with env
+      if: ${{inputs.level_name == 'L7' && steps.checkout-solutions-repo.outcome == 'success'}}
+      uses: cypress-io/github-action@v6
+      continue-on-error: true
+      with:
+        wait-on: ${{inputs.submissionUrl}}
+        wait-on-timeout: 540
+        project: ./solution/l7
+        env: STUDENT_SUBMISSION_URL=${{inputs.submissionUrl}}
 
     # Report failure
     - name: Report failure if tests fails
@@ -184,6 +206,10 @@ runs:
             ;;
           "L6")
             cd solution/l6 && node generateReportFromResults.js
+            ;;
+          # ... Add cases for other levels (L3 to L11)
+          "L7")
+            cd solution/l7 && node generateReportFromResults.js
             ;;
           # ... Add cases for other levels (L3 to L11)
         esac
