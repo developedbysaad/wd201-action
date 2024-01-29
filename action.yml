@@ -88,6 +88,14 @@ runs:
             cp solution/l8/package.json package.json
             cp solution/l8/package-lock.json package-lock.json
             ;;
+          "l9")
+            rm -rf solution/l9/__tests__
+            cp -r solution/l7/generateReportFromResults.js solution/l9
+            cp -r submission/todo-app/__tests__ solution/l9
+            cp submission/todo-app/app.js solution/l9/app.js
+            cp -r submission/todo-app/models solution/l9
+            cp -r submission/todo-app/views solution/l9
+            ;;
         esac
       shell: bash
 
@@ -141,15 +149,16 @@ runs:
             npm install
             npm run test
             ;;
-          "l7")
-            cd solution/l6
+          "l9")
+            cd solution/l9
             npm install
-            npm run test
+            npm install cypress cypress-json-results
+            npx cypress run --env STUDENT_SUBMISSION_URL="http://localhost:3000/"
             ;;
         esac
       shell: bash
 
-    # Cypress for L7
+    # Cypress for l7 & l8
     - name: Cypress run with env
       if: ${{(inputs.level_name == 'l7' || inputs.level_name == 'l8') && steps.checkout-solutions-repo.outcome == 'success'}}
       uses: cypress-io/github-action@v6
@@ -159,6 +168,20 @@ runs:
         wait-on-timeout: 540
         project: ./solution/${{inputs.level_name}}
         env: STUDENT_SUBMISSION_URL=${{inputs.submissionUrl}}
+
+    # Run the app for l9
+    - name: Run the app
+      if:  ${{ inputs.level_name == 'l9' && steps.copy-submission-files.outcome == 'success' }}
+      id: run-app
+      run: |
+        cd solution/l9
+        npm install
+        npx sequelize-cli db:drop
+        npx sequelize-cli db:create
+        npx sequelize-cli db:migrate
+        PORT=3000 npm start &
+        sleep 5
+      shell: bash
 
     # Report failure
     - name: Report failure if tests fails
@@ -219,6 +242,9 @@ runs:
             ;;
           "l8")
             cd solution/l8 && node generateReportFromResults.js
+            ;;
+          "l9")
+            cd solution/l9 && node generateReportFromResults.js
             ;;
           # ... Add cases for other levels (L3 to L11)
         esac
