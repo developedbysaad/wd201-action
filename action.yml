@@ -70,6 +70,12 @@ runs:
           "L5")
             cp submission/todo-cli/models/todo.js solution/l5/models/todo.js
             ;;
+          "L6")
+            rm -rf solution/models
+            cp -r solution/helpers/generateReportFromResults.js solution/l6/generateReportFromResults.js
+            cp -r submission/todo-app/models/ solution/l6/
+            cp submission/todo-app/app.js solution/l6/app.js
+            ;;
         esac
       shell: bash
 
@@ -115,6 +121,11 @@ runs:
             ;;
           "L5")
             cd solution/l5
+            npm install
+            npm run test
+            ;;
+          "L6")
+            cd solution/l6
             npm install
             npm run test
             ;;
@@ -170,6 +181,9 @@ runs:
             ;;
           "L5")
             cd solution/l5 && node generateReportFromResults.js
+            ;;
+          "L6")
+            cd solution/l6 && node generateReportFromResults.js
             ;;
           # ... Add cases for other levels (L3 to L11)
         esac
