@@ -41,13 +41,13 @@ runs:
         repository: pupilfirst/wd201-tests
         path: solution
 
-    # Copy test files to student's repo
+    # Copy submission/test files to solution/student's repo
     - name: Copy test files to submission repo
       if: steps.checkout-solutions-repo.outcome == 'success'
       id: copy-submission-files
       continue-on-error: true
       run: |
-        # Conditional logic to copy necessary files  based on the level
+        # Conditional logic to copy necessary files based on the level
         case ${{ inputs.level_name }} in
           "L2")
             cp -r solution/l2/cypress submission/http-server
@@ -66,6 +66,9 @@ runs:
             cp submission/todo-cli/__tests__/todo.js solution/l4/__tests__/todoFailure.js
             sed -i 's/("..\/todo")/("..\/todoFailure")/g' solution/l4/__tests__/todoFailure.js
             sed -i "s/('..\/todo')/('..\/todoFailure')/g" solution/l4/__tests__/todoFailure.js
+            ;;
+          "L5")
+            cp submission/todo-cli/models/todo.js solution/l5/models/todo.js
             ;;
         esac
       shell: bash
@@ -107,6 +110,11 @@ runs:
             ;;
           "L4")
             cd solution/l4
+            npm install
+            npm run test
+            ;;
+          "L5")
+            cd solution/l5
             npm install
             npm run test
             ;;
@@ -159,6 +167,9 @@ runs:
             ;;
           "L4")
             cd solution/l4 && node generateReportFromResults.js
+            ;;
+          "L5")
+            cd solution/l5 && node generateReportFromResults.js
             ;;
           # ... Add cases for other levels (L3 to L11)
         esac
