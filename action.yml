@@ -72,50 +72,35 @@ runs:
 
     # run the tests
     - name: Setup and Test Submission
-      if: ${{steps.checkout-solutions-repo.outcome == 'success' || steps.copy-submission-files.outcome == 'success' }}
+      if: ${{ steps.checkout-solutions-repo.outcome == 'success' || steps.copy-submission-files.outcome == 'success' }}
       id: run-test
       continue-on-error: true
       run: |
+        # Function to handle common tasks
+        run_tests() {
+          cd "$1"         # Change to the directory specified by the first argument
+          npm install     # Install npm packages
+          $2              # Execute the command specified by the second argument
+        }
+
         # Conditional logic to run tests based on the level
         case ${{ inputs.level_name }} in
           "l2")
-            cd submission/http-server
-            npm install
-            npm run test
+            run_tests "submission/http-server" "npm run test"
             ;;
           "l3")
             cd solution/l3
             node test.js
             ;;
-          "l4")
-            cd solution/l4
-            npm install
-            npm run test
+          "l4" | "l5" | "l6")
+            run_tests "solution/${{ inputs.level_name }}" "npm run test"
             ;;
-          "l5")
-            cd solution/l5
-            npm install
-            npm run test
-            ;;
-          "l6")
-            cd solution/l6
-            npm install
-            npm run test
-            ;;
-          "l9")
-            cd solution/l9
-            npm install
-            npm install cypress cypress-json-results
-            npx cypress run --env STUDENT_SUBMISSION_URL="http://localhost:3000/"
-            ;;
-          "l10")
-            cd solution/l10
-            npm install
-            npm install cypress cypress-json-results
-            npx cypress run --env STUDENT_SUBMISSION_URL="http://localhost:3000/"
+          "l9" | "l10")
+            run_tests "solution/${{ inputs.level_name }}" "npm install cypress cypress-json-results && npx cypress run --env STUDENT_SUBMISSION_URL='http://localhost:3000/'"
             ;;
         esac
       shell: bash
+
 
     # Cypress for l7 & l8
     - name: Cypress run with env
