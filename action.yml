@@ -70,6 +70,20 @@ runs:
         esac
       shell: bash
 
+    # Run the app for l9 and l10
+    - name: Run the app
+      if:  ${{ (inputs.level_name == 'l9' || inputs.level_name == 'l10') && steps.copy-submission-files.outcome == 'success' }}
+      id: run-app
+      run: |
+        cd solution/${{inputs.level_name}}
+        npm install
+        npx sequelize-cli db:drop
+        npx sequelize-cli db:create
+        npx sequelize-cli db:migrate
+        PORT=3000 npm start &
+        sleep 5
+      shell: bash
+
     # run the tests
     - name: Setup and Test Submission
       if: ${{ steps.checkout-solutions-repo.outcome == 'success' || steps.copy-submission-files.outcome == 'success' }}
@@ -114,20 +128,6 @@ runs:
         wait-on-timeout: 540
         project: ./solution/${{inputs.level_name}}
         env: STUDENT_SUBMISSION_URL=${{inputs.submissionUrl}}
-
-    # Run the app for l9 and l10
-    - name: Run the app
-      if:  ${{ (inputs.level_name == 'l9' || inputs.level_name == 'l10') && steps.copy-submission-files.outcome == 'success' }}
-      id: run-app
-      run: |
-        cd solution/${{inputs.level_name}}
-        npm install
-        npx sequelize-cli db:drop
-        npx sequelize-cli db:create
-        npx sequelize-cli db:migrate
-        PORT=3000 npm start &
-        sleep 5
-      shell: bash
 
     # Report failure
     - name: Report failure if tests fails
