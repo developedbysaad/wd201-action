@@ -96,7 +96,9 @@ runs:
             run_tests "solution/${{ inputs.level_name }}" "npm run test"
             ;;
           "l9" | "l10")
-            run_tests "solution/${{ inputs.level_name }}" "npm install cypress cypress-json-results && npx cypress run --env STUDENT_SUBMISSION_URL='http://localhost:3000/'"
+            cd solution/${{ inputs.level_name }}
+            npm install cypress cypress-json-results
+            npx cypress run --env STUDENT_SUBMISSION_URL='http://localhost:3000/'
             ;;
         esac
       shell: bash
