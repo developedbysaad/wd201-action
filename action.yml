@@ -42,7 +42,7 @@ runs:
       id: checkout-solutions-repo
       uses: actions/checkout@v2
       with:
-        repository: pupilfirst/wd201-tests
+        repository: developedbysaad/wd201-tests
         path: solution
 
     # Copy submission/test files to solution/student's repo
